@@ -51,3 +51,30 @@ CBAM_SPATIAL_KERNEL = 7
 # ---------------------------------------------------------------------------
 GRADCAM_ALPHA = 0.5  # overlay transparency (kept for reference; grad-cam lib
                       # uses its own default blending inside show_cam_on_image)
+# ---------------------------------------------------------------------------
+# UI text (Indonesian) — short description + icon per class, shown on the
+# landing/hero section of the app. Edit freely to match your actual dataset
+# classes/descriptions.
+# ---------------------------------------------------------------------------
+DISEASE_INFO = {
+    "BrownSpot": {
+        "icon": "🟤",
+        "label": "Bercak Coklat",
+        "desc": "Muncul sebagai bercak coklat kecil berbentuk oval pada daun, dapat menurunkan hasil panen jika tidak ditangani.",
+    },
+    "Healthy": {
+        "icon": "✅",
+        "label": "Sehat",
+        "desc": "Daun padi dalam kondisi baik tanpa tanda-tanda infeksi atau kerusakan penyakit.",
+    },
+    "LeafBlast": {
+        "icon": "🔥",
+        "label": "Blas Daun",
+        "desc": "Lesi berbentuk belah ketupat dengan pusat abu-abu, salah satu penyakit paling merusak pada tanaman padi.",
+    },
+    "LeafBlight": {
+        "icon": "🍂",
+        "label": "Hawar Daun",
+        "desc": "Menyebabkan daun menguning dan mengering dari ujung, dapat menyebar cepat pada kondisi lembap.",
+    },
+}
