@@ -1,0 +1,110 @@
+{
+  "BrownSpot": {
+    "nama": "Bercak Coklat",
+    "nama_en": "Brown Spot",
+    "patogen": "Bipolaris oryzae (Cochliobolus miyabeanus)",
+    "jenis": "Jamur",
+    "dampak": "tinggi",
+    "kehilangan_hasil": "5–45%",
+    "ringkasan": "Penyakit jamur yang menyerang padi pada semua fase pertumbuhan dan paling sering muncul di lahan yang kekurangan hara. Pada lahan yang terinfeksi berat, penurunan produktivitas dapat mencapai 45%.",
+    "gejala": [
+      "Bercak bulat sampai lonjong berwarna coklat tua dengan pusat keabu-abuan",
+      "Ukuran bercak relatif seragam dan tersebar merata di helai daun",
+      "Tepi bercak sering dikelilingi lingkar kuning tipis",
+      "Pada serangan berat, daun mengering lebih awal dan gabah menjadi kehitaman"
+    ],
+    "penanggulangan": [
+      "Perbaiki status hara lahan, terutama kalium dan silika, karena bercak coklat erat kaitannya dengan tanah miskin hara",
+      "Gunakan benih sehat bersertifikat dan lakukan perlakuan benih sebelum tanam",
+      "Jaga tinggi genangan air agar tidak sampai kekeringan pada fase kritis",
+      "Bakar atau benamkan sisa jerami terinfeksi agar tidak menjadi sumber inokulum musim berikutnya",
+      "Bila serangan meluas, gunakan fungisida berbahan aktif mankozeb atau propikonazol sesuai anjuran setempat"
+    ],
+    "catatan_model": "Pada dataset eksternal, sebagian gambar kelas ini tertukar dengan Leaf Blast karena bentuk lesi keduanya bisa sangat mirip pada fase awal."
+  },
+  "Healthy": {
+    "nama": "Daun Sehat",
+    "nama_en": "Healthy",
+    "patogen": "",
+    "jenis": "Tanpa gejala",
+    "dampak": "aman",
+    "ringkasan": "Tidak ditemukan gejala penyakit pada helai daun. Warna, tekstur, dan permukaan daun berada dalam kondisi normal.",
+    "gejala": [
+      "Warna hijau merata tanpa bercak atau perubahan warna setempat",
+      "Permukaan daun mulus, tidak ada lesi memanjang maupun bulat",
+      "Tepi dan ujung daun tidak mengering",
+      "Pertumbuhan tegak dan seragam antar anakan"
+    ],
+    "penanggulangan": [
+      "Lanjutkan pemantauan rutin, terutama saat kelembapan tinggi dan setelah pemupukan nitrogen",
+      "Pertahankan jarak tanam agar sirkulasi udara di antara rumpun tetap baik",
+      "Catat kondisi lahan sebagai pembanding untuk pemeriksaan berikutnya"
+    ],
+    "catatan_model": "Kelas ini paling konsisten dikenali model, dengan F1-score 1,00 pada dataset internal dan 0,95 pada dataset eksternal."
+  },
+  "LeafBlast": {
+    "nama": "Blas Daun",
+    "nama_en": "Leaf Blast",
+    "patogen": "Magnaporthe oryzae (Pyricularia oryzae)",
+    "jenis": "Jamur",
+    "dampak": "tinggi",
+    "kehilangan_hasil": "10–30%",
+    "ringkasan": "Salah satu penyakit padi paling merusak di dunia. Menyebar cepat pada kondisi lembap dengan suhu sedang, terutama bila pemupukan nitrogen berlebihan.",
+    "gejala": [
+      "Lesi berbentuk belah ketupat atau memanjang seperti mata",
+      "Bagian tengah lesi keabu-abuan sampai keputihan dengan tepi coklat tegas",
+      "Lesi dapat menyatu sehingga helai daun mati seluruhnya",
+      "Pada serangan leher malai, gabah menjadi hampa"
+    ],
+    "penanggulangan": [
+      "Kurangi dosis nitrogen dan berikan secara bertahap, bukan sekaligus",
+      "Tanam varietas tahan blas yang dianjurkan untuk wilayah setempat",
+      "Hindari genangan yang terlalu dangkal karena memicu perkembangan jamur",
+      "Atur waktu tanam agar fase rentan tidak bertepatan dengan kelembapan puncak",
+      "Aplikasikan fungisida berbahan aktif trisiklazol atau azoksistrobin bila gejala mulai muncul di beberapa titik"
+    ],
+    "catatan_model": "Pada pengujian dataset eksternal, kelas ini cenderung menjadi kelas penampung bagi kesalahan prediksi kelas penyakit lain."
+  },
+  "LeafBlight": {
+    "nama": "Hawar Daun Bakteri",
+    "nama_en": "Bacterial Leaf Blight",
+    "patogen": "Xanthomonas oryzae pv. oryzae",
+    "jenis": "Bakteri",
+    "dampak": "tinggi",
+    "kehilangan_hasil": "20–30%",
+    "ringkasan": "Penyakit bakteri yang menyebar lewat benih terinfeksi, air irigasi, dan percikan hujan. Kerusakan paling parah terjadi bila infeksi menyerang sejak fase pembibitan.",
+    "gejala": [
+      "Lesi basah memanjang yang bermula dari ujung atau tepi daun",
+      "Warna berubah dari hijau pucat menjadi kuning lalu putih keabu-abuan",
+      "Tepi lesi bergelombang mengikuti tulang daun",
+      "Pada pagi hari dapat terlihat tetesan eksudat bakteri berwarna kekuningan"
+    ],
+    "penanggulangan": [
+      "Gunakan benih bebas penyakit dan lakukan perendaman benih dengan air panas sesuai anjuran",
+      "Hindari pemupukan nitrogen berlebih yang membuat jaringan daun lebih rentan",
+      "Kelola aliran irigasi agar air dari petak terinfeksi tidak mengalir ke petak sehat",
+      "Cabut dan musnahkan rumpun yang terinfeksi berat beserta gulma inang di sekitar pematang",
+      "Tanam varietas tahan hawar daun bakteri pada musim tanam berikutnya"
+    ],
+    "catatan_model": "Kelas yang paling terbantu oleh CBAM. Tanpa CBAM, F1-score kelas ini pada dataset eksternal jatuh ke 0,00; dengan CBAM naik menjadi 0,78."
+  },
+  "NotRiceLeaf": {
+    "nama": "Bukan Daun Padi",
+    "nama_en": "Not a Rice Leaf",
+    "patogen": "",
+    "jenis": "Di luar cakupan",
+    "dampak": "netral",
+    "ringkasan": "Gambar yang dikirim tidak dikenali sebagai helai daun padi. Kelas ini sengaja disertakan agar model dapat menolak masukan di luar cakupan, bukan memaksakan salah satu label penyakit.",
+    "gejala": [
+      "Objek utama pada gambar bukan helai daun padi",
+      "Dapat berupa benda, hewan, manusia, atau tanaman jenis lain"
+    ],
+    "penanggulangan": [
+      "Ambil ulang foto dengan satu helai daun padi sebagai objek utama",
+      "Pastikan daun mengisi sebagian besar bidang gambar",
+      "Gunakan pencahayaan merata dan hindari bayangan keras",
+      "Fokuskan kamera pada area yang menunjukkan gejala"
+    ],
+    "catatan_model": "Kelas paling stabil di kedua dataset, dengan F1-score 0,99 pada data internal dan 1,00 pada data eksternal."
+  }
+}

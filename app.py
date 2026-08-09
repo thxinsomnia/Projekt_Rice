@@ -1,188 +1,165 @@
-"""
-app.py
-------
-Streamlit front-end for the Rice Leaf Disease Classifier
-(EfficientNet-B0 + CBAM) with Grad-CAM explainability.
+"""Aplikasi deteksi penyakit daun padi berbasis EfficientNet-B0 + CBAM.
 
-Run with:
+Jalankan dengan:
     streamlit run app.py
 """
 
-import os
+import sys
+from pathlib import Path
 
-import numpy as np
 import streamlit as st
-import torch
-from PIL import Image
 
-from config import (
-    CLASS_NAMES,
-    NUM_CLASSES,
-    IMAGE_SIZE,
-    DEFAULT_CHECKPOINT_PATH,
-    WEIGHTS_DIR,
-    CBAM_CHANNELS,
-    CBAM_REDUCTION,
-    CBAM_SPATIAL_KERNEL,
-)
-from models import build_model
-from utils import preprocess_image, predict_image, get_gradcam, generate_gradcam_overlay
+# Pastikan paket lokal dapat diimpor ketika dijalankan dari mana saja.
+ROOT_DIR = Path(__file__).resolve().parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
-
-# ---------------------------------------------------------------------------
-# Page setup
-# ---------------------------------------------------------------------------
-st.set_page_config(
-    page_title="Rice Leaf Disease Classifier",
-    page_icon="🌾",
-    layout="wide",
+from config.settings import DEFAULT_MODEL_PATH  # noqa: E402
+from src.model.loader import ambil_model, model_bawaan_tersedia  # noqa: E402
+from src.ui.theme import WARNA, terapkan_tema  # noqa: E402
+from src.ui.views import (  # noqa: E402
+    beranda,
+    deteksi,
+    metodologi,
+    penyakit,
+    performa,
 )
 
+HALAMAN = {
+    "Beranda": beranda,
+    "Deteksi": deteksi,
+    "Penyakit": penyakit,
+    "Performa": performa,
+    "Metodologi": metodologi,
+}
 
-# ---------------------------------------------------------------------------
-# Cached resources: model + Grad-CAM object
-# ---------------------------------------------------------------------------
-@st.cache_resource(show_spinner="Loading model...")
-def load_model(checkpoint_path, device_str):
-    device = torch.device(device_str)
-    model = build_model(
-        num_classes=NUM_CLASSES,
-        checkpoint_path=checkpoint_path,
-        device=device,
-        cbam_channels=CBAM_CHANNELS,
-        cbam_reduction=CBAM_REDUCTION,
-        cbam_spatial_kernel=CBAM_SPATIAL_KERNEL,
+
+def siapkan_halaman() -> None:
+    st.set_page_config(
+        page_title="Deteksi Penyakit Daun Padi",
+        page_icon="🌾",
+        layout="wide",
+        initial_sidebar_state="expanded",
     )
-    return model
+    terapkan_tema()
 
 
-@st.cache_resource(show_spinner=False)
-def load_cam(_model):
-    # underscore prefix tells Streamlit not to hash this arg
-    return get_gradcam(_model)
+def panel_samping() -> tuple[str, object]:
+    """Merender panel kiri dan mengembalikan (halaman terpilih, model)."""
+    with st.sidebar:
+        st.markdown(
+            """
+            <div class="rl-sidebar-merek">Deteksi Daun Padi</div>
+            <div class="rl-sidebar-sub">EfficientNet-B0 + CBAM</div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-
-# ---------------------------------------------------------------------------
-# Sidebar: settings
-# ---------------------------------------------------------------------------
-st.sidebar.title("⚙️ Settings")
-
-device_option = st.sidebar.radio(
-    "Device",
-    options=["cpu", "cuda"] if torch.cuda.is_available() else ["cpu"],
-    index=0,
-)
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("Model checkpoint")
-
-uploaded_ckpt = st.sidebar.file_uploader(
-    "Upload a .pth checkpoint (optional)",
-    type=["pth", "pt"],
-    help="If you don't have one on disk yet, upload your trained weights here.",
-)
-
-checkpoint_path = DEFAULT_CHECKPOINT_PATH
-
-if uploaded_ckpt is not None:
-    os.makedirs(WEIGHTS_DIR, exist_ok=True)
-    saved_ckpt_path = os.path.join(WEIGHTS_DIR, uploaded_ckpt.name)
-    with open(saved_ckpt_path, "wb") as f:
-        f.write(uploaded_ckpt.getbuffer())
-    checkpoint_path = saved_ckpt_path
-    st.sidebar.success(f"Using uploaded checkpoint: {uploaded_ckpt.name}")
-elif os.path.exists(DEFAULT_CHECKPOINT_PATH):
-    st.sidebar.info(f"Using default checkpoint:\n`{os.path.basename(DEFAULT_CHECKPOINT_PATH)}`")
-else:
-    st.sidebar.warning(
-        "No checkpoint found in weights/ and none uploaded. "
-        "The model will run with ImageNet-pretrained weights only "
-        "(predictions will be meaningless until you provide a trained checkpoint)."
-    )
-    checkpoint_path = None
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("Classes")
-st.sidebar.write(", ".join(CLASS_NAMES))
-
-
-# ---------------------------------------------------------------------------
-# Main area
-# ---------------------------------------------------------------------------
-st.title("🌾 Rice Leaf Disease Classifier")
-st.caption(
-    "EfficientNet-B0 backbone + CBAM attention, with Grad-CAM visual "
-    "explanation of the model's decision."
-)
-
-uploaded_image = st.file_uploader(
-    "Upload a rice leaf image",
-    type=["jpg", "jpeg", "png", "bmp", "webp"],
-)
-
-run_button_placeholder = st.empty()
-
-if uploaded_image is not None:
-    pil_image = Image.open(uploaded_image).convert("RGB")
-
-    col_input, col_result = st.columns(2)
-
-    with col_input:
-        st.subheader("Input Image")
-        st.image(pil_image, use_container_width=True)
-
-    analyze_clicked = run_button_placeholder.button("🔍 Analyze Image", type="primary")
-
-    if analyze_clicked:
-        with st.spinner("Loading model and running inference..."):
-            model = load_model(checkpoint_path, device_option)
-            cam = load_cam(model)
-
-            input_tensor = preprocess_image(pil_image, image_size=IMAGE_SIZE)
-
-            predicted_name, confidence, probabilities = predict_image(
-                model, input_tensor, CLASS_NAMES, device=device_option
-            )
-
-            overlay, original_image = generate_gradcam_overlay(
-                cam, input_tensor.to(device_option)
-            )
-
-        with col_result:
-            st.subheader("Prediction")
-            if predicted_name.lower() == "healthy":
-                st.success(f"**{predicted_name}** — {confidence:.2f}% confidence")
-            else:
-                st.error(f"**{predicted_name}** — {confidence:.2f}% confidence")
-
-            st.write("**Class probabilities:**")
-            for class_name, prob in sorted(
-                probabilities.items(), key=lambda kv: kv[1], reverse=True
-            ):
-                st.progress(min(int(prob), 100), text=f"{class_name}: {prob:.2f}%")
+        halaman = st.radio(
+            "Halaman",
+            list(HALAMAN.keys()),
+            label_visibility="collapsed",
+        )
 
         st.markdown("---")
-        st.subheader("Grad-CAM Explanation")
-        gradcam_col1, gradcam_col2 = st.columns(2)
+        st.markdown("**Sumber bobot model**")
 
-        with gradcam_col1:
-            st.image(
-                (original_image * 255).astype(np.uint8),
-                caption="Preprocessed input",
-                use_container_width=True,
-            )
-
-        with gradcam_col2:
-            st.image(
-                overlay,
-                caption=f"Grad-CAM overlay (focus behind '{predicted_name}' prediction)",
-                use_container_width=True,
-            )
-
-        st.info(
-            "The Grad-CAM heatmap highlights the regions of the leaf that "
-            "most influenced the model's prediction — warmer colors (red/"
-            "yellow) indicate areas of higher importance."
+        pilihan = st.radio(
+            "Sumber bobot model",
+            ["Model bawaan", "Unggah model sendiri"],
+            label_visibility="collapsed",
         )
-else:
-    st.info("👆 Upload a rice leaf image to get started.")
+
+        berkas_model = None
+
+        if pilihan == "Unggah model sendiri":
+            berkas_model = st.file_uploader(
+                "Berkas bobot",
+                type=["pth", "pt"],
+                help=(
+                    "State dict PyTorch dari arsitektur EfficientNet-B0 + CBAM "
+                    "dengan 5 kelas."
+                ),
+            )
+            if berkas_model is None:
+                st.caption(
+                    "Belum ada berkas. Aplikasi sementara memakai model bawaan."
+                )
+        else:
+            if model_bawaan_tersedia():
+                st.caption(f"Memakai `{DEFAULT_MODEL_PATH.name}`")
+            else:
+                st.caption(
+                    f"`{DEFAULT_MODEL_PATH.name}` belum ada di folder models/"
+                )
+
+    return halaman, berkas_model
+
+
+def kartu_status_model(dimuat) -> None:
+    """Ringkasan model aktif di bagian bawah panel samping."""
+    with st.sidebar:
+        st.markdown("---")
+        st.markdown(
+            f"""
+            <div style="font-size:0.72rem;letter-spacing:0.12em;
+                        text-transform:uppercase;color:{WARNA["daun_muda"]};
+                        margin-bottom:0.5rem;">
+                Model aktif
+            </div>
+            <div style="font-family:JetBrains Mono,monospace;font-size:0.78rem;
+                        word-break:break-all;margin-bottom:0.6rem;">
+                {dimuat.sumber}
+            </div>
+            <div style="font-size:0.75rem;opacity:0.65;line-height:1.6;">
+                {dimuat.jumlah_parameter:,} parameter<br>
+                {dimuat.ukuran_mb:.1f} MB &middot; {dimuat.device.type.upper()}
+            </div>
+            """.replace(
+                ",", "."
+            ),
+            unsafe_allow_html=True,
+        )
+
+
+def main() -> None:
+    siapkan_halaman()
+
+    halaman, berkas_model = panel_samping()
+
+    dimuat, kesalahan = ambil_model(berkas_model)
+
+    if dimuat is not None:
+        kartu_status_model(dimuat)
+
+    modul = HALAMAN[halaman]
+
+    # Hanya halaman Deteksi yang membutuhkan model termuat.
+    if halaman == "Deteksi":
+        if dimuat is None:
+            st.error(kesalahan, icon="🚫")
+            st.markdown(
+                f"""
+                <div class="rl-kartu" style="margin-top:1rem;">
+                    <div class="rl-eyebrow">Cara melengkapi</div>
+                    <ol class="rl-daftar">
+                        <li>Salin berkas <code>{DEFAULT_MODEL_PATH.name}</code>
+                            hasil pelatihan ke folder <code>models/</code>.</li>
+                        <li>Atau pilih <em>Unggah model sendiri</em> di panel
+                            kiri, lalu pilih berkas <code>.pth</code>.</li>
+                        <li>Muat ulang halaman setelah berkas tersedia.</li>
+                    </ol>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            return
+        modul.tampilkan(dimuat)
+    else:
+        if kesalahan and halaman == "Beranda":
+            st.warning(kesalahan, icon="⚠️")
+        modul.tampilkan()
+
+
+if __name__ == "__main__":
+    main()
